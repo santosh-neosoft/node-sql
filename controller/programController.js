@@ -7,7 +7,7 @@ exports.getprogram = (req,res) =>{
     var version = req.query.version == undefined? "" : req.query.version;
     var app = req.query.app == undefined? "" : req.query.app;
     var outputObj ={};
-    outputObj.languuage = "";
+    outputObj.language = "";
     outputObj.category = [];
     outputObj.name = [];
     outputObj.desc = [];
@@ -22,9 +22,7 @@ exports.getprogram = (req,res) =>{
                     "where Language.lang_name = '"+language+"'"; 
     if(client != "" && language != ""){
         getMasterDetails(rowQuery).then(function(results){
-            if(results.lang_id != ""){
-                outputObj.language = language;
-            }
+
             results.forEach(function(element , index){
               outputObj.program.push(element.code)
               outputObj.input.push(element.code);
@@ -33,6 +31,7 @@ exports.getprogram = (req,res) =>{
           });
           
           if(results.length > 0){
+            outputObj.language = results[0].lang_name;
             return results[0].prog_id;
           }else{
               return results;
@@ -53,7 +52,12 @@ exports.getprogram = (req,res) =>{
             return saveRequestlog(stmt ,values );
         }).then(function(){
            // connection.end();
+           if(!outputObj.language || !outputObj.language.length){
+            res.json({'data':outputObj,'Message':'FAILURE','Reason':'Either client or language is not defined in the parameter'});   
+           }else{
             res.json({'data':outputObj,'Message':'SUCCESS','Reason':''});
+           }
+            
         }).catch(function(err){
             return res.json({"data":[],"Message": "FAILURE","Reason": err.message})
         })
